@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SoftwareGamer.Core;
 
-if (args.Contains("--hold")) { Thread.Sleep(45000); return 0; }
+if (args.Contains("--hold")) { Console.WriteLine("ready"); Thread.Sleep(45000); return 0; }
 var passed = 0; var failed = 0; var skipped = 0;
 var root = Path.Combine(Path.GetTempPath(), "SoftwareGamerTests", Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(root);
@@ -20,10 +20,13 @@ string Old(string d, string name = "old.tmp") { var p = Path.Combine(d, name); F
 { var d = Dir(); var tmp = Path.Combine(d, "Temp"); Directory.CreateDirectory(tmp); var store = new StateStore(Path.Combine(d, "State")); return (store, new(store, tmp), tmp); }
 Process Child()
 {
-    var start = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false };
+    var start = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false, RedirectStandardOutput = true };
     if (string.Equals(Path.GetFileNameWithoutExtension(Environment.ProcessPath), "dotnet", StringComparison.OrdinalIgnoreCase)) start.ArgumentList.Add(typeof(GameProfile).Assembly.Location.Replace("SoftwareGamer.Core.dll", "SoftwareGamer.Tests.dll"));
     start.ArgumentList.Add("--hold");
-    return Process.Start(start)!;
+    var child = Process.Start(start)!;
+    var ready = child.StandardOutput.ReadLineAsync();
+    if (!ready.Wait(TimeSpan.FromSeconds(10)) || ready.Result != "ready") { if (!child.HasExited) child.Kill(); throw new Exception("Child did not initialize"); }
+    child.Refresh(); return child;
 }
 
 Test("path containment rejects sibling prefix", () => Assert(!CleanupPolicy.IsWithin(Path.Combine(root, "Temp"), Path.Combine(root, "Temp-other", "x.tmp"))));
@@ -63,8 +66,8 @@ Test("priority restores own child process", () =>
         child.PriorityClass=ProcessPriorityClass.Normal; var path=child.MainModule!.FileName;
         var game=new GameProcess(child.Id,child.StartTime.ToUniversalTime().Ticks,"test",path);
         service.Apply(new(){ExecutablePath=path,ExecutableHash=WindowsSystem.ExecutableHash(path),AboveNormal=true},game,Environment.ProcessPath!);
-        Assert(child.PriorityClass==ProcessPriorityClass.AboveNormal);
-        service.RestoreAll(); Assert(child.PriorityClass==ProcessPriorityClass.Normal && !s.Read().Changes.Any(c=>c.Pending));
+        child.Refresh(); Assert(child.PriorityClass==ProcessPriorityClass.AboveNormal);
+        service.RestoreAll(); child.Refresh(); Assert(child.PriorityClass==ProcessPriorityClass.Normal && !s.Read().Changes.Any(c=>c.Pending));
     }
     finally { service.RestoreAll(); if(!child.HasExited)child.Kill(); }
 },true);
@@ -83,6 +86,10 @@ Test("priority restoration preserves an external change", () =>
     finally { if(!child.HasExited)child.Kill(); }
 },true);
 Test("PID reuse identity mismatch returns no process", () => { using var self=Process.GetCurrentProcess(); Assert(WindowsSystem.OpenInstance($"{self.Id}:1") is null); },true);
+Test("interrupted quarantine reconciles moved file", () => { var f=Fixture(); Old(f.Temp); f.Cleaner.Quarantine(f.Cleaner.Scan().Files); f.Store.Use(s=>{s.Quarantine.Single().Status="Prepared";return true;}); f.Cleaner.Reconcile(); Assert(f.Store.Read().Quarantine.Single().Status=="Quarantined"); },true);
+Test("interrupted restoration reconciles restored file", () => { var f=Fixture(); var p=Old(f.Temp); f.Cleaner.Quarantine(f.Cleaner.Scan().Files); f.Cleaner.Restore(f.Store.Read().Quarantine.Single().Id); f.Store.Use(s=>{s.Quarantine.Single().Status="RestorePrepared";return true;}); f.Cleaner.Reconcile(); Assert(File.Exists(p) && f.Store.Read().Quarantine.Single().Status=="Restored"); },true);
+Test("interrupted purge counted once", () => { var f=Fixture(); Old(f.Temp); f.Cleaner.Quarantine(f.Cleaner.Scan().Files); var q=f.Store.Read().Quarantine.Single(); f.Cleaner.Purge(q.Id); f.Store.Use(s=>{s.Quarantine.Single().Status="PurgePrepared";s.PurgedBytes=0;return true;}); f.Cleaner.Reconcile(); f.Cleaner.Reconcile(); Assert(f.Store.Read().Quarantine.Single().Status=="Purged" && f.Store.Read().PurgedBytes==q.Identity.Length); },true);
+Test("locked ancestor cannot be renamed during operation", () => { var f=Fixture(); var dir=Path.Combine(f.Temp,"child");Directory.CreateDirectory(dir);var p=Old(dir);using var h=WindowsFile.Open(f.Temp,p,true);Throws(()=>Directory.Move(dir,dir+"-moved"));Assert(File.Exists(p)); },true);
 Console.WriteLine($"RESULT passed={passed} failed={failed} skipped={skipped}");
 Console.WriteLine($"Test fixtures: {root}");
 return failed==0 ? 0 : 1;

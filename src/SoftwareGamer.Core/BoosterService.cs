@@ -39,7 +39,7 @@ public sealed class BoosterService(StateStore store)
                     // Do not demote/reconfigure a process that another program has already boosted.
                     if (process.PriorityClass != ProcessPriorityClass.Normal) throw new IOException("O processo já usa uma prioridade diferente de Normal. O perfil não irá sobrescrevê-la.");
                     ApplyChange(state, new() { Owner = owner, SessionId = game.Identity, Kind = "Priority", Resource = game.Identity, Before = before, Applied = "AboveNormal" },
-                        () => { process.PriorityClass = ProcessPriorityClass.AboveNormal; if (process.PriorityClass != ProcessPriorityClass.AboveNormal) throw new IOException("Prioridade não confirmada."); });
+                        () => { process.PriorityClass = ProcessPriorityClass.AboveNormal; process.Refresh(); if (process.PriorityClass != ProcessPriorityClass.AboveNormal) throw new IOException("Prioridade não confirmada."); });
                 }
             }
             catch { RestoreRecords(state, owner); store.Save(state); throw; }
@@ -117,7 +117,7 @@ public sealed class BoosterService(StateStore store)
                         if (current == c.Before) { c.Status = "Restored"; break; }
                         if (!RestorePolicy.CanRestore(current, c.Applied)) { Conflict(c); break; }
                         if (c.Before != "Normal" || c.Applied != "AboveNormal") throw new InvalidDataException("Registro de prioridade não autorizado.");
-                        p.PriorityClass = ProcessPriorityClass.Normal; c.Status = p.PriorityClass == ProcessPriorityClass.Normal ? "Restored" : "Conflict";
+                        p.PriorityClass = ProcessPriorityClass.Normal; p.Refresh(); c.Status = p.PriorityClass == ProcessPriorityClass.Normal ? "Restored" : "Conflict";
                     }
                     break;
                 case "StartupRecovery":
