@@ -1,0 +1,37 @@
+# Credenciais e configurações locais
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/
+*.pem
+*.pfx
+*.p12
+*.key
+
+# IDEs e sistema operacional
+.vs/
+.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Saídas de build
+**/bin/
+**/obj/
+**/target/
+node_modules/
+dist/
+coverage/
+TestResults/
+
+# Estado de execução, capturas e diagnóstico
+*.log
+*.dmp
+*.etl
+*.pcap
+*.pcapng
+*.sqlite
+*.sqlite-*
