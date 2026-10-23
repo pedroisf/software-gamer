@@ -2,7 +2,7 @@
 
 Aplicativo desktop em português para **Windows 11 x64**, com limpeza seletiva e perfis reversíveis por jogo. Funciona localmente, sem conta, telemetria, GPN ou servidores.
 
-**Versão 0.1.1: funcional para validação.** Não representa homologação de produção nem promete aumento de FPS. Veja [limitações](docs/LIMITACOES.md) e [evidências de testes](docs/VALIDACAO.md).
+**Versão 0.2.0: funcional para validação.** Não representa homologação de produção nem promete aumento de FPS. Veja [limitações](docs/LIMITACOES.md) e [evidências de testes](docs/VALIDACAO.md).
 
 ![Dashboard do Software Gamer](docs/screenshots/dashboard.png)
 

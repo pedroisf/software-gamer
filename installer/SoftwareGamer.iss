@@ -1,4 +1,4 @@
-#define AppVersion "0.1.1"
+#define AppVersion "0.2.0"
 [Setup]
 AppId={{9F654FAB-31C7-4ADB-A595-F0827F7D9D39}
 AppName=Software Gamer

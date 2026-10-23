@@ -1,5 +1,12 @@
 # Histórico
 
+## 0.2.0
+
+- Redesign grafite e roxo inspirado na direção aprovada do NZXT CAM.
+- Página única com limpeza, perfis, recuperação e ferramentas; detalhes expansíveis.
+- Controles e hierarquia visual redesenhados.
+
+
 ## 0.1.1
 
 - Corrige o bloqueio ao abrir com permissões administrativas herdadas do Windows.

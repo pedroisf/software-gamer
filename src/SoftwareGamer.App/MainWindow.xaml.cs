@@ -118,8 +118,8 @@ public partial class MainWindow : Window
         catch (Exception e) { Status(e.Message); }
         finally { ticking = false; TryShowUpdate(); }
     }
-    private void GoCleaner(object sender, RoutedEventArgs e) => Tabs.SelectedIndex = 1;
-    private void GoProfiles(object sender, RoutedEventArgs e) => Tabs.SelectedIndex = 2;
+    private void GoCleaner(object sender, RoutedEventArgs e) => CleanerSection.BringIntoView();
+    private void GoProfiles(object sender, RoutedEventArgs e) => ProfilesSection.BringIntoView();
     private async void ScanClick(object sender, RoutedEventArgs e) => await Scan();
     private async Task Scan() => await Work(async () =>
     {
@@ -276,8 +276,12 @@ public partial class MainWindow : Window
             await Scan();
             foreach (var i in new[] { 0, 1, 2, 3, 4 })
             {
-                Tabs.SelectedIndex = i; UpdateLayout();
-                if (i == 4) { HelpScroll.ScrollToBottom(); UpdateLayout(); }
+                ProfileDetails.IsExpanded = i == 2;
+                RecoveryDetails.IsExpanded = i == 3;
+                UpdateLayout();
+                if (i == 0) PageScroll.ScrollToTop();
+                else new FrameworkElement[] { CleanerSection, ProfilesSection, RecoverySection, ToolsSection }[i - 1].BringIntoView();
+                UpdateLayout();
                 await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 var bmp = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);
                 bmp.Render(this); var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bmp));
