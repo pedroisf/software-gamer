@@ -78,7 +78,8 @@ public partial class MainWindow : Window
     private void RefreshSystem()
     {
         var memory = WindowsSystem.Memory();
-        MemoryText.Text = $"{Format.Bytes(memory.RamUsed)} / {Format.Bytes(memory.RamTotal)}";
+        MemoryText.Text = Format.Bytes(memory.RamUsed);
+        MemoryTotalText.Text = $"de {Format.Bytes(memory.RamTotal)} disponíveis no sistema";
         SourceText.Text = WindowsSystem.PowerSource();
         var active = WindowsSystem.ActivePowerScheme();
         var scheme = PowerCombo.Items.OfType<PowerScheme>().FirstOrDefault(s => s.Id == active)?.Name ?? active;
