@@ -1,0 +1,77 @@
+<Window x:Class="SoftwareGamer.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Software Gamer" Width="1200" Height="850" MinWidth="980" MinHeight="680" WindowStartupLocation="CenterScreen">
+  <Grid Margin="30,24">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid Margin="0,0,0,22">
+      <StackPanel><TextBlock Text="SOFTWARE GAMER" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/><TextBlock Text="Seu PC. Sob seu controle." FontSize="28" FontWeight="SemiBold" Margin="0,6,0,0"/></StackPanel>
+      <Border Background="{DynamicResource PanelBrush}" CornerRadius="16" Padding="14,8" HorizontalAlignment="Right" VerticalAlignment="Center"><TextBlock Text="LOCAL · SEM CONTA · SEM GPN" FontSize="11" Foreground="{DynamicResource AccentBrush}"/></Border>
+    </Grid>
+    <TabControl x:Name="Tabs" Grid.Row="1">
+      <TabItem Header="Visão geral">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+          <TextBlock Text="Um ajuste por vez. Resultados reais." FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8"/>
+          <TextBlock Style="{StaticResource Muted}" Text="Analise antes de limpar. Use perfis opcionais e mantenha a possibilidade de voltar ao estado anterior." Margin="0,0,0,24"/>
+          <UniformGrid Columns="3">
+            <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="MEMÓRIA EM USO" Style="{StaticResource Muted}" FontSize="11"/><TextBlock x:Name="MemoryText" Text="—" FontSize="25" Margin="0,10"/><TextBlock Text="Leitura do Windows. Não esvaziamos a RAM." Style="{StaticResource Muted}" FontSize="12"/></StackPanel></Border>
+            <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="ARQUIVOS EXCLUÍDOS" Style="{StaticResource Muted}" FontSize="11"/><TextBlock x:Name="FreedText" Text="0 B" FontSize="25" Margin="0,10"/><TextBlock Text="Tamanho lógico. Quarentena não libera espaço." Style="{StaticResource Muted}" FontSize="12"/></StackPanel></Border>
+            <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="AJUSTES ATIVOS / PENDENTES" Style="{StaticResource Muted}" FontSize="11"/><TextBlock x:Name="ChangesText" Text="0" FontSize="25" Margin="0,10"/><TextBlock x:Name="SourceText" Style="{StaticResource Muted}" FontSize="12"/></StackPanel></Border>
+          </UniformGrid>
+          <Border Style="{StaticResource Card}" Margin="0,0,14,16"><StackPanel><TextBlock Text="Estado do sistema" FontSize="18" FontWeight="SemiBold"/><TextBlock x:Name="SystemText" Style="{StaticResource Muted}" Margin="0,12,0,0"/><TextBlock x:Name="RuntimeText" Style="{StaticResource Muted}" Margin="0,6,0,0"/><TextBlock Text="FPS, frametime e temperatura: indisponíveis nesta versão. Não estimamos ganhos sem medição." Style="{StaticResource Muted}" Margin="0,6,0,0"/></StackPanel></Border>
+          <UniformGrid Columns="2">
+            <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="01  Limpeza com prévia" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Temporários .tmp e .temp com mais de 7 dias. Você escolhe os arquivos e pode colocá-los em quarentena antes de excluir." Style="{StaticResource Muted}" Margin="0,12,0,18"/><Button Content="Analisar temporários →" HorizontalAlignment="Left" Click="GoCleaner"/></StackPanel></Border>
+            <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="02  Perfis por jogo" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Prioridade AboveNormal e plano de energia existente, somente se você escolher. Recuperação após encerramento ou falha do aplicativo." Style="{StaticResource Muted}" Margin="0,12,0,18"/><Button Content="Configurar um perfil →" HorizontalAlignment="Left" Click="GoProfiles"/></StackPanel></Border>
+          </UniformGrid>
+        </StackPanel></ScrollViewer>
+      </TabItem>
+      <TabItem Header="Limpeza">
+        <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <StackPanel><TextBlock Text="Revise antes de remover" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Somente temporários do seu usuário, em NTFS local, antigos e fora de uso. Links, arquivos pessoais e caches de jogos não são limpos automaticamente." Style="{StaticResource Muted}" Margin="0,8,0,12"/></StackPanel>
+          <WrapPanel Grid.Row="1"><Button Content="Analisar" Style="{StaticResource PrimaryButton}" Click="ScanClick"/><Button Content="Cancelar operação" Click="CancelClick"/><Button Content="Selecionar todos" Click="SelectAllClick"/><Button Content="Limpar seleção" Click="SelectNoneClick"/><Button Content="Mover selecionados para quarentena" Click="QuarantineClick"/></WrapPanel>
+          <DataGrid x:Name="FilesGrid" Grid.Row="2" AutomationProperties.Name="Arquivos candidatos à limpeza" EnableRowVirtualization="True">
+            <DataGrid.Columns><DataGridCheckBoxColumn Header="Usar" Binding="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" Width="55"/><DataGridTextColumn Header="Arquivo" Binding="{Binding Item.Name}" Width="210" IsReadOnly="True"/><DataGridTextColumn Header="Tamanho" Binding="{Binding Item.SizeLabel}" Width="95" IsReadOnly="True"/><DataGridTextColumn Header="Caminho" Binding="{Binding Item.Path}" Width="*" IsReadOnly="True"/></DataGrid.Columns>
+          </DataGrid>
+          <TextBlock x:Name="ScanSummary" Grid.Row="3" Text="Nenhuma análise realizada. Todos os arquivos começam desmarcados." Style="{StaticResource Muted}" Margin="0,14,0,0"/>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Perfis de jogos">
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <DockPanel Margin="0,0,24,0"><StackPanel DockPanel.Dock="Top"><TextBlock Text="Seus jogos" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,16"/><Button Content="Adicionar executável" Click="AddProfileClick"/></StackPanel><ListBox x:Name="ProfilesList" SelectionChanged="ProfileSelected" AutomationProperties.Name="Perfis salvos"/></DockPanel>
+          <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto"><StackPanel Margin="0,0,14,0">
+            <TextBlock Text="Perfil local e reversível" FontSize="22" FontWeight="SemiBold"/>
+            <TextBlock Text="Nenhum ajuste é ativado por padrão. Executáveis alterados exigem recadastro do perfil. Processos protegidos podem negar ajustes; não tentamos contornar essa proteção." Style="{StaticResource Muted}" Margin="0,8,0,16"/>
+            <TextBlock Text="Nome do jogo"/><TextBox x:Name="ProfileName" AutomationProperties.Name="Nome do perfil"/>
+            <TextBlock Text="Executável"/><TextBox x:Name="ProfilePath" IsReadOnly="True" AutomationProperties.Name="Caminho do jogo"/>
+            <CheckBox x:Name="PriorityCheck" Content="Usar prioridade AboveNormal durante a sessão"/>
+            <TextBlock Text="Plano de energia — aplicado somente na tomada"/><ComboBox x:Name="PowerCombo" AutomationProperties.Name="Plano de energia do perfil"/>
+            <TextBlock Text="Um plano de desempenho pode elevar consumo e temperatura. Não alteramos CPU, PCIe, Registro de rede, pagefile ou Standby List." Style="{StaticResource Muted}" FontSize="12" Margin="0,0,0,12"/>
+            <WrapPanel><Button Content="Salvar perfil" Style="{StaticResource PrimaryButton}" Click="SaveProfileClick"/><Button Content="Excluir perfil" Click="DeleteProfileClick"/><Button Content="Iniciar jogo" Click="LaunchClick"/></WrapPanel>
+            <TextBlock Text="Processo em execução" Margin="0,10,0,0"/><ComboBox x:Name="ProcessCombo" AutomationProperties.Name="Processos em execução"/>
+            <WrapPanel><Button Content="Atualizar processos" Click="RefreshProcessesClick"/><Button Content="Aplicar ao processo" Click="ApplyClick"/></WrapPanel>
+            <CheckBox x:Name="AutoCheck" Content="Aplicar perfis automaticamente enquanto este aplicativo estiver aberto" Click="AutoClick"/>
+            <TextBlock Text="Fechar o aplicativo restaura os ajustes. A troca de plano registra temporariamente uma recuperação no próximo logon para cobrir reinicializações inesperadas." Style="{StaticResource Muted}" FontSize="12"/>
+          </StackPanel></ScrollViewer>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Recuperação">
+        <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+          <StackPanel><TextBlock Text="Volte ao estado anterior" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Conflitos preservam mudanças feitas fora do aplicativo. Arquivos excluídos permanentemente não podem ser recuperados aqui." Style="{StaticResource Muted}" Margin="0,8,0,12"/></StackPanel>
+          <WrapPanel Grid.Row="1"><Button Content="Restaurar todos os ajustes" Style="{StaticResource PrimaryButton}" Click="RestoreAllClick"/><Button Content="Restaurar ajuste selecionado" Click="RestoreOneClick"/><Button Content="Manter estado atual do conflito" Click="KeepCurrentClick"/></WrapPanel>
+          <DataGrid x:Name="ChangesGrid" Grid.Row="2" IsReadOnly="True" AutomationProperties.Name="Histórico de ajustes"><DataGrid.Columns><DataGridTextColumn Header="Ajuste" Binding="{Binding Kind}" Width="140"/><DataGridTextColumn Header="Antes" Binding="{Binding Before}" Width="150"/><DataGridTextColumn Header="Aplicado" Binding="{Binding Applied}" Width="150"/><DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="100"/><DataGridTextColumn Header="Detalhe" Binding="{Binding Detail}" Width="*"/></DataGrid.Columns></DataGrid>
+          <StackPanel Grid.Row="3" Margin="0,18,0,0"><TextBlock Text="Quarentena · até 2 GiB · sem exclusão automática" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10"/><WrapPanel><Button Content="Restaurar arquivo selecionado" Click="RestoreFileClick"/><Button Content="Restaurar todos os arquivos" Click="RestoreFilesClick"/><Button Content="Excluir selecionado permanentemente" Click="PurgeClick"/></WrapPanel></StackPanel>
+          <DataGrid x:Name="QuarantineGrid" Grid.Row="4" IsReadOnly="True" AutomationProperties.Name="Arquivos em quarentena"><DataGrid.Columns><DataGridTextColumn Header="Arquivo original" Binding="{Binding OriginalPath}" Width="*"/><DataGridTextColumn Header="Tamanho" Binding="{Binding SizeLabel}" Width="95"/><DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="110"/><DataGridTextColumn Header="Data" Binding="{Binding CreatedAt, StringFormat=dd/MM/yyyy HH:mm}" Width="150"/></DataGrid.Columns></DataGrid>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Ferramentas e ajuda">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+          <TextBlock Text="As configurações oficiais, a um clique" FontSize="22" FontWeight="SemiBold"/>
+          <TextBlock Text="Estas ações abrem o Windows. Você escolhe o que mudar; alterações manuais não entram no histórico de restauração deste aplicativo." Style="{StaticResource Muted}" Margin="0,10,0,20"/>
+          <WrapPanel><Button Content="Armazenamento e limpeza do Windows" Tag="ms-settings:storagesense" Click="OpenSettingsClick"/><Button Content="Game Mode" Tag="ms-settings:gaming-gamemode" Click="OpenSettingsClick"/><Button Content="Capturas em segundo plano" Tag="ms-settings:gaming-gamedvr" Click="OpenSettingsClick"/><Button Content="Energia e bateria" Tag="ms-settings:powersleep" Click="OpenSettingsClick"/></WrapPanel>
+          <Border Style="{StaticResource Card}" Margin="0,16,14,16"><StackPanel><TextBlock Text="O que esta versão faz" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="• Analisa temporários antigos e preserva uma cópia em quarentena.&#10;• Permite excluir definitivamente apenas itens já revisados.&#10;• Aplica prioridade AboveNormal e planos de energia existentes, por escolha sua.&#10;• Restaura ajustes ao encerrar o jogo, fechar o aplicativo ou recuperar uma falha.&#10;• Mantém os dados neste computador, sem conta, telemetria ou serviço online." Style="{StaticResource Muted}" Margin="0,12,0,0"/></StackPanel></Border>
+          <TextBlock Text="Limites importantes" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Não há GPN nem promessa de ganho de FPS. Caches de navegador, launchers, shaders, Prefetch e Registro não são apagados por este aplicativo. Somente um perfil pode manter ajustes ativos por vez. Aplicativos ou jogos protegidos podem recusar acesso.&#10;&#10;Esta versão ainda não tem assinatura digital comercial. Não desative o antivírus, Secure Boot ou anti-cheat para executá-la. Atualizações são manuais, por downloads da página oficial de Releases." Style="{StaticResource Muted}" Margin="0,10,0,20"/>
+          <WrapPanel><Button Content="Repositório e versões" Click="OpenRepositoryClick"/><Button Content="Exportar diagnóstico local" Click="ExportClick"/></WrapPanel>
+          <TextBlock Text="O diagnóstico contém somente versão, sistema e contagens de estado, sem caminhos de jogos/arquivos ou credenciais." Style="{StaticResource Muted}" FontSize="12"/>
+        </StackPanel></ScrollViewer>
+      </TabItem>
+    </TabControl>
+    <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="12" Margin="0,18,0,0"><DockPanel><TextBlock Text="v0.1.0" DockPanel.Dock="Right" Foreground="{DynamicResource MutedBrush}" Margin="14,0,0,0"/><TextBlock x:Name="StatusText" Text="Pronto. Nenhuma alteração automática." AutomationProperties.LiveSetting="Polite" TextTrimming="CharacterEllipsis" MaxHeight="50"/></DockPanel></Border>
+  </Grid>
+</Window>

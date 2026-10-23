@@ -1,0 +1,77 @@
+name: Windows build and validation
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Build desktop application
+        run: |
+          dotnet build src/SoftwareGamer.App -c Release -warnaserror
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+      - name: Safety and Windows integration tests
+        run: |
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          dotnet run --project tests/SoftwareGamer.Tests -c Release 2>&1 | Tee-Object artifacts/tests.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Safety tests failed' }
+      - name: Publish standalone executable
+        run: |
+          dotnet publish src/SoftwareGamer.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o artifacts/portable
+          if ($LASTEXITCODE -ne 0) { throw 'Publish failed' }
+      - name: WPF launch and render smoke test
+        run: |
+          $out = Join-Path $PWD 'artifacts/screenshots'
+          $p = Start-Process artifacts/portable/SoftwareGamer.exe -ArgumentList @('--smoke', ('"' + $out + '"')) -PassThru
+          if (-not $p.WaitForExit(90000)) { $p.Kill(); throw 'UI smoke timed out' }
+          if ($p.ExitCode -ne 0) { throw "UI smoke failed: $($p.ExitCode)" }
+          if ((Get-ChildItem $out -Filter '*.png').Count -ne 5) { throw 'Missing UI screenshots' }
+      - name: Compile per-user installer
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw 'Inno Setup compiler not installed on this runner' }
+          & $iscc installer/SoftwareGamer.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+      - name: Package and hash
+        run: |
+          Copy-Item README.md,docs/GUIA_DO_USUARIO.md,docs/LIMITACOES.md artifacts/portable/
+          Compress-Archive artifacts/portable/* artifacts/SoftwareGamer-win-x64.zip
+          Get-ChildItem artifacts/portable/SoftwareGamer.exe,artifacts/SoftwareGamer-win-x64.zip,artifacts/SoftwareGamer-Setup-x64.exe | ForEach-Object {
+            $h = Get-FileHash $_.FullName -Algorithm SHA256
+            "$($h.Hash.ToLower())  $($_.Name)"
+          } | Set-Content artifacts/SHA256SUMS.txt
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-windows
+          path: |
+            artifacts/tests.txt
+            artifacts/screenshots/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-gamer-win-x64
+          path: |
+            artifacts/portable/SoftwareGamer.exe
+            artifacts/SoftwareGamer-win-x64.zip
+            artifacts/SoftwareGamer-Setup-x64.exe
+            artifacts/SHA256SUMS.txt
+          retention-days: 14

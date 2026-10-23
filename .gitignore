@@ -35,3 +35,5 @@ TestResults/
 *.pcapng
 *.sqlite
 *.sqlite-*
+artifacts/
+.dotnet/

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>SoftwareGamer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/app.ico</ApplicationIcon>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../SoftwareGamer.Core/SoftwareGamer.Core.csproj" /></ItemGroup>
+</Project>
