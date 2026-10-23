@@ -29,8 +29,8 @@ public partial class App : Application
                 Shutdown(); return;
             }
             var smoke = e.Args.Length == 2 && e.Args[0] == "--smoke";
-            if (!smoke && new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
-            { MessageBox.Show("Abra o Software Gamer normalmente, sem 'Executar como administrador'. A aplicação usa apenas as permissões do seu usuário.", "Software Gamer"); Shutdown(2); return; }
+            // asInvoker does not request elevation, but Windows may supply an elevated
+            // token (for example through the launching process). This is not a startup error.
             var sid = WindowsIdentity.GetCurrent().User?.Value ?? "user";
             instance = new Mutex(true, @"Local\SoftwareGamer.UI." + sid, out var created);
             if (!created) { Shutdown(e.Args.Contains("--uninstall-recover") ? 3 : 0); return; }
@@ -66,6 +66,20 @@ public partial class App : Application
                 new BoosterService(store).RestoreAll(); cleaner.Reconcile();
             }
             var window = new MainWindow(store, cleaner, smoke ? e.Args[1] : null);
+            // Exercise the real startup path in CI, without the fixture-only smoke branch.
+            if (e.Args.Length == 2 && e.Args[0] == "--startup-check")
+                window.ContentRendered += (_, _) =>
+                {
+                    Directory.CreateDirectory(e.Args[1]);
+                    using var identity = WindowsIdentity.GetCurrent();
+                    File.WriteAllText(Path.Combine(e.Args[1], "startup-result.json"), System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        visible = window.IsVisible,
+                        administratorToken = new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator),
+                        version = AppRelease.Version.ToString(3)
+                    }));
+                    window.Dispatcher.BeginInvoke(new Action(window.Close));
+                };
             MainWindow = window; ShutdownMode = ShutdownMode.OnMainWindowClose; window.Show();
         }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Software Gamer — operação interrompida", MessageBoxButton.OK, MessageBoxImage.Warning); Shutdown(1); }

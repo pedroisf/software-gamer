@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Security.Principal;
+using Microsoft.Win32.SafeHandles;
 
 namespace SoftwareGamer.Core;
 
@@ -56,7 +58,7 @@ public static class WindowsSystem
             {
                 try
                 {
-                    if (p.Id == Environment.ProcessId || p.SessionId != self.SessionId) continue;
+                    if (p.Id == Environment.ProcessId || p.SessionId != self.SessionId || !IsCurrentUserProcess(p)) continue;
                     var path = p.MainModule?.FileName;
                     if (path is not null) result.Add(new(p.Id, p.StartTime.ToUniversalTime().Ticks, p.ProcessName, path));
                 }
@@ -72,10 +74,27 @@ public static class WindowsSystem
         try
         {
             var p = Process.GetProcessById(pid);
-            if (p.StartTime.ToUniversalTime().Ticks != ticks) { p.Dispose(); return null; }
-            return p;
+            try
+            {
+                if (p.StartTime.ToUniversalTime().Ticks != ticks) { p.Dispose(); return null; }
+                using var self = Process.GetCurrentProcess();
+                if (p.SessionId != self.SessionId || !IsCurrentUserProcess(p))
+                    throw new UnauthorizedAccessException("O processo não pertence ao seu usuário e sessão.");
+                return p;
+            }
+            catch { p.Dispose(); throw; }
         }
         catch (ArgumentException) { return null; }
+    }
+    public static bool IsCurrentUserProcess(Process process)
+    {
+        if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException();
+        using var handle = Native.OpenProcess(0x1000, false, process.Id); // QUERY_LIMITED_INFORMATION only
+        if (handle.IsInvalid || !Native.OpenProcessToken(handle, 0x8, out var token)) return false;
+        using (token)
+        using (var owner = new WindowsIdentity(token.DangerousGetHandle()))
+        using (var current = WindowsIdentity.GetCurrent())
+            return current.User is { } currentSid && owner.User is { } ownerSid && currentSid.Equals(ownerSid);
     }
     public static (long RamUsed, long RamTotal) Memory()
     {
@@ -85,6 +104,8 @@ public static class WindowsSystem
     }
     private static class Native
     {
+        [DllImport("kernel32.dll", SetLastError = true)] internal static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int pid);
+        [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool OpenProcessToken(SafeProcessHandle process, uint access, out SafeAccessTokenHandle token);
         [DllImport("powrprof.dll")] internal static extern uint PowerGetActiveScheme(IntPtr root, out IntPtr scheme);
         [DllImport("powrprof.dll")] internal static extern uint PowerSetActiveScheme(IntPtr root, ref Guid scheme);
         [DllImport("powrprof.dll")] internal static extern uint PowerEnumerate(IntPtr root, IntPtr scheme, IntPtr subgroup, uint access, uint index, byte[] buffer, ref uint size);

@@ -13,7 +13,7 @@ on:
       tag:
         description: Release tag (must have docs/releases/TAG.md)
         required: true
-        default: v0.1.0
+        default: v0.1.1
         type: string
 permissions:
   actions: read
@@ -57,17 +57,21 @@ jobs:
           cd ..
           grep -Eq 'RESULT passed=[1-9][0-9]* failed=0 skipped=0' validation/tests.txt
           jq -e '.rendered == 5 and .candidates == 1' validation/screenshots/smoke-result.json
+          jq -e '.visible == true and .administratorToken == true' validation/startup/startup-result.json
+          jq -e '.binaryMatches == true and .started == true and .uninstalled == true' validation/installer-test/installer-result.json
           printf 'commit=%s\nworkflow=https://github.com/%s/actions/runs/%s\n' "$TARGET_SHA" "$GH_REPO" "$BUILD_RUN" > validation/BUILD.txt
           (cd validation && zip -qr ../SoftwareGamer-validacao-windows.zip .)
       - name: Upload complete prerelease
         shell: bash
         run: |
           set -euo pipefail
+          cp "docs/releases/$RELEASE_TAG.md" /tmp/release-notes.md
+          printf '\n\nBuild validado: [%s](https://github.com/%s/actions/runs/%s). Commit: `%s`.\n' "$BUILD_RUN" "$GH_REPO" "$BUILD_RUN" "$TARGET_SHA" >> /tmp/release-notes.md
           if gh release view "$RELEASE_TAG" --json isDraft > /tmp/release.json 2>/dev/null; then
             jq -e '.isDraft == true' /tmp/release.json
           else
-            gh release create "$RELEASE_TAG" --target "$TARGET_SHA" --title "Software Gamer ${RELEASE_TAG#v} — Cleaner e Booster locais" --draft --prerelease --notes-file "docs/releases/$RELEASE_TAG.md"
+            gh release create "$RELEASE_TAG" --target "$TARGET_SHA" --title "Software Gamer ${RELEASE_TAG#v} — Correções e atualizações" --draft --prerelease --notes-file /tmp/release-notes.md
           fi
           gh release upload "$RELEASE_TAG" distribution/SoftwareGamer.exe distribution/SoftwareGamer-Setup-x64.exe distribution/SoftwareGamer-win-x64.zip distribution/SHA256SUMS.txt SoftwareGamer-validacao-windows.zip --clobber
           gh release view "$RELEASE_TAG" --json assets --jq '.assets | length == 5' | grep -qx true
-          gh release edit "$RELEASE_TAG" --target "$TARGET_SHA" --notes-file "docs/releases/$RELEASE_TAG.md" --draft=false --prerelease
+          gh release edit "$RELEASE_TAG" --target "$TARGET_SHA" --notes-file /tmp/release-notes.md --draft=false --prerelease

@@ -2,7 +2,7 @@
 
 ## Instalação
 
-Windows 11 x64. Baixe `SoftwareGamer-Setup-x64.exe` nos Releases do repositório e execute normalmente, sem elevar para administrador. O runtime .NET está incluído. A instalação é por usuário e cria uma entrada no menu Iniciar.
+Windows 11 x64. Baixe `SoftwareGamer-Setup-x64.exe` nos Releases do repositório e execute normalmente. Não é necessário solicitar privilégios administrativos; permissões herdadas do Windows não impedem a abertura. O runtime .NET está incluído. A instalação é por usuário e cria uma entrada no menu Iniciar.
 
 Alternativamente use o executável portátil `SoftwareGamer.exe`. Mantenha-o num local estável, fora de diretórios temporários. Não mova/remova o executável enquanto houver ajustes ativos: o caminho é usado pela recuperação no logon. Verifique o SHA-256 com `Get-FileHash .\SoftwareGamer.exe -Algorithm SHA256` e compare ao arquivo da mesma release.
 
@@ -36,3 +36,11 @@ Antes de desinstalar, restaure/encerre ajustes e restaure ou purgue os arquivos 
 ## Privacidade e atualizações
 
 Sem conta, anúncios, telemetria, API de IA ou servidor de backend. O diagnóstico exportado não contém caminhos pessoais nem conteúdo de arquivos. Abrir o repositório utiliza o navegador. Atualizações são manuais pelo GitHub Releases; não há atualizador automático nesta versão.
+
+## Atualizações (a partir da versão 0.1.1)
+
+O aplicativo consulta as versões públicas no GitHub alguns segundos após abrir e a cada 6 horas enquanto permanece aberto. Ao encontrar uma versão mais recente com instalador disponível, pergunta se deseja baixar. “Sim” abre a página oficial no navegador; “Não” adia o aviso até a próxima abertura do aplicativo. A pergunta é adiada enquanto a janela não está ativa ou uma operação está em andamento. A linha 0.x também avisa sobre novas pré-releases de teste.
+
+Em **Ferramentas e ajuda → Atualizações**, é possível verificar manualmente ou desativar os avisos automáticos. Uma falha de internet não impede usar o aplicativo. A consulta não envia perfis, caminhos ou diagnósticos; o GitHub recebe IP e versão do aplicativo, como em uma conexão HTTPS normal.
+
+Baixe o instalador (ou portátil), feche o aplicativo para restaurar ajustes e execute a nova versão. Nada é baixado, instalado ou executado automaticamente. A versão 0.1.0 precisa ser substituída manualmente uma vez, pois não contém o verificador de atualizações.

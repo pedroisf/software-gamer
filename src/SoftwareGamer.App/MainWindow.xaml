@@ -61,17 +61,24 @@
         </Grid>
       </TabItem>
       <TabItem Header="Ferramentas e ajuda">
-        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+        <ScrollViewer x:Name="HelpScroll" VerticalScrollBarVisibility="Auto"><StackPanel>
           <TextBlock Text="As configurações oficiais, a um clique" FontSize="22" FontWeight="SemiBold"/>
           <TextBlock Text="Estas ações abrem o Windows. Você escolhe o que mudar; alterações manuais não entram no histórico de restauração deste aplicativo." Style="{StaticResource Muted}" Margin="0,10,0,20"/>
           <WrapPanel><Button Content="Armazenamento e limpeza do Windows" Tag="ms-settings:storagesense" Click="OpenSettingsClick"/><Button Content="Game Mode" Tag="ms-settings:gaming-gamemode" Click="OpenSettingsClick"/><Button Content="Capturas em segundo plano" Tag="ms-settings:gaming-gamedvr" Click="OpenSettingsClick"/><Button Content="Energia e bateria" Tag="ms-settings:powersleep" Click="OpenSettingsClick"/></WrapPanel>
-          <Border Style="{StaticResource Card}" Margin="0,16,14,16"><StackPanel><TextBlock Text="O que esta versão faz" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="• Analisa temporários antigos e preserva uma cópia em quarentena.&#10;• Permite excluir definitivamente apenas itens já revisados.&#10;• Aplica prioridade AboveNormal e planos de energia existentes, por escolha sua.&#10;• Restaura ajustes ao encerrar o jogo, fechar o aplicativo ou recuperar uma falha.&#10;• Mantém os dados neste computador, sem conta, telemetria ou serviço online." Style="{StaticResource Muted}" Margin="0,12,0,0"/></StackPanel></Border>
-          <TextBlock Text="Limites importantes" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Não há GPN nem promessa de ganho de FPS. Caches de navegador, launchers, shaders, Prefetch e Registro não são apagados por este aplicativo. Somente um perfil pode manter ajustes ativos por vez. Aplicativos ou jogos protegidos podem recusar acesso.&#10;&#10;Esta versão ainda não tem assinatura digital comercial. Não desative o antivírus, Secure Boot ou anti-cheat para executá-la. Atualizações são manuais, por downloads da página oficial de Releases." Style="{StaticResource Muted}" Margin="0,10,0,20"/>
+          <Border Style="{StaticResource Card}" Margin="0,16,14,16"><StackPanel><TextBlock Text="O que esta versão faz" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="• Analisa temporários antigos e preserva uma cópia em quarentena.&#10;• Permite excluir definitivamente apenas itens já revisados.&#10;• Aplica prioridade AboveNormal e planos de energia existentes, por escolha sua.&#10;• Restaura ajustes ao encerrar o jogo, fechar o aplicativo ou recuperar uma falha.&#10;• Mantém perfis e histórico neste computador, sem conta ou telemetria." Style="{StaticResource Muted}" Margin="0,12,0,0"/></StackPanel></Border>
+          <TextBlock Text="Limites importantes" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Não há GPN nem promessa de ganho de FPS. Caches de navegador, launchers, shaders, Prefetch e Registro não são apagados por este aplicativo. Somente um perfil pode manter ajustes ativos por vez. Aplicativos ou jogos protegidos podem recusar acesso.&#10;&#10;Esta versão ainda não tem assinatura digital comercial. Não desative o antivírus, Secure Boot ou anti-cheat para executá-la. O aplicativo avisa sobre novas versões. O download e a instalação dependem da sua escolha." Style="{StaticResource Muted}" Margin="0,10,0,20"/>
+          <Border Style="{StaticResource Card}" Margin="0,0,14,16"><StackPanel>
+            <TextBlock Text="Atualizações" FontSize="18" FontWeight="SemiBold"/>
+            <CheckBox x:Name="UpdateCheck" Content="Avisar quando houver uma nova versão" Click="UpdatePreferenceClick"/>
+            <TextBlock Text="Consulta o GitHub ao abrir e a cada 6 horas. Nenhum perfil, caminho de arquivo ou diagnóstico é enviado. O GitHub recebe os dados normais da conexão, como IP e versão do app." Style="{StaticResource Muted}" Margin="0,4,0,12"/>
+            <Button Content="Verificar atualizações" Click="CheckUpdatesClick" HorizontalAlignment="Left"/>
+            <TextBlock x:Name="UpdateStatus" Style="{StaticResource Muted}" Margin="0,6,0,0" AutomationProperties.LiveSetting="Polite"/>
+          </StackPanel></Border>
           <WrapPanel><Button Content="Repositório e versões" Click="OpenRepositoryClick"/><Button Content="Exportar diagnóstico local" Click="ExportClick"/></WrapPanel>
           <TextBlock Text="O diagnóstico contém somente versão, sistema e contagens de estado, sem caminhos de jogos/arquivos ou credenciais." Style="{StaticResource Muted}" FontSize="12"/>
         </StackPanel></ScrollViewer>
       </TabItem>
     </TabControl>
-    <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="12" Margin="0,18,0,0"><DockPanel><TextBlock Text="v0.1.0" DockPanel.Dock="Right" Foreground="{DynamicResource MutedBrush}" Margin="14,0,0,0"/><TextBlock x:Name="StatusText" Text="Pronto. Nenhuma alteração automática." AutomationProperties.LiveSetting="Polite" TextTrimming="CharacterEllipsis" MaxHeight="50"/></DockPanel></Border>
+    <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" CornerRadius="8" Padding="12" Margin="0,18,0,0"><DockPanel><TextBlock x:Name="VersionText" DockPanel.Dock="Right" Foreground="{DynamicResource MutedBrush}" Margin="14,0,0,0"/><TextBlock x:Name="StatusText" Text="Pronto. Nenhuma alteração automática." AutomationProperties.LiveSetting="Polite" TextTrimming="CharacterEllipsis" MaxHeight="50"/></DockPanel></Border>
   </Grid>
 </Window>

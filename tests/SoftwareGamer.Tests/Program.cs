@@ -2,6 +2,13 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SoftwareGamer.Core;
 
+if (args.Length == 3 && args[0] == "--check-release")
+{
+    using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+    var update = await new UpdateClient(http).CheckAsync(Version.Parse(args[1]));
+    if (update is null || update.Version < Version.Parse(args[2])) throw new Exception("Expected public release was not offered");
+    Console.WriteLine($"PUBLIC UPDATE OK: {update.Version} {update.Page}"); return 0;
+}
 if (args.Contains("--hold")) { Console.WriteLine("ready"); Thread.Sleep(45000); return 0; }
 var passed = 0; var failed = 0; var skipped = 0;
 var root = Path.Combine(Path.GetTempPath(), "SoftwareGamerTests", Guid.NewGuid().ToString("N"));
@@ -90,6 +97,11 @@ Test("interrupted quarantine reconciles moved file", () => { var f=Fixture(); Ol
 Test("interrupted restoration reconciles restored file", () => { var f=Fixture(); var p=Old(f.Temp); f.Cleaner.Quarantine(f.Cleaner.Scan().Files); f.Cleaner.Restore(f.Store.Read().Quarantine.Single().Id); f.Store.Use(s=>{s.Quarantine.Single().Status="RestorePrepared";return true;}); f.Cleaner.Reconcile(); Assert(File.Exists(p) && f.Store.Read().Quarantine.Single().Status=="Restored"); },true);
 Test("interrupted purge counted once", () => { var f=Fixture(); Old(f.Temp); f.Cleaner.Quarantine(f.Cleaner.Scan().Files); var q=f.Store.Read().Quarantine.Single(); f.Cleaner.Purge(q.Id); f.Store.Use(s=>{s.Quarantine.Single().Status="PurgePrepared";s.PurgedBytes=0;return true;}); f.Cleaner.Reconcile(); f.Cleaner.Reconcile(); Assert(f.Store.Read().Quarantine.Single().Status=="Purged" && f.Store.Read().PurgedBytes==q.Identity.Length); },true);
 Test("locked ancestor cannot be renamed during operation", () => { var f=Fixture(); var dir=Path.Combine(f.Temp,"child");Directory.CreateDirectory(dir);var p=Old(dir);using var h=WindowsFile.Open(f.Temp,p,true);Throws(()=>Directory.Move(dir,dir+"-moved"));Assert(File.Exists(p)); },true);
+UpdateTests.Run((name, action) => Test(name, action));
+Test("process scope accepts current user and rejects system service", () => {
+    using var self=Process.GetCurrentProcess(); Assert(WindowsSystem.IsCurrentUserProcess(self));
+    using var system=Process.GetProcessById(4); Assert(!WindowsSystem.IsCurrentUserProcess(system));
+},true);
 Console.WriteLine($"RESULT passed={passed} failed={failed} skipped={skipped}");
 Console.WriteLine($"Test fixtures: {root}");
 return failed==0 ? 0 : 1;

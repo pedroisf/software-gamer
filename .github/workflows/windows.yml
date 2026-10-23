@@ -34,6 +34,14 @@ jobs:
         run: |
           dotnet publish src/SoftwareGamer.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o artifacts/portable
           if ($LASTEXITCODE -ne 0) { throw 'Publish failed' }
+      - name: Real startup with inherited administrator token
+        run: |
+          $out = Join-Path $PWD 'artifacts/startup'
+          $p = Start-Process artifacts/portable/SoftwareGamer.exe -ArgumentList @('--startup-check', ('"' + $out + '"')) -PassThru
+          if (-not $p.WaitForExit(60000)) { $p.Kill(); throw 'Real startup timed out' }
+          if ($p.ExitCode -ne 0) { throw "Real startup failed: $($p.ExitCode)" }
+          $result = Get-Content "$out/startup-result.json" | ConvertFrom-Json
+          if (-not $result.visible -or -not $result.administratorToken) { throw 'Elevated startup regression was not exercised' }
       - name: WPF launch and render smoke test
         run: |
           $out = Join-Path $PWD 'artifacts/screenshots'
@@ -47,6 +55,8 @@ jobs:
           if (-not (Test-Path $iscc)) { throw 'Inno Setup compiler not installed on this runner' }
           & $iscc installer/SoftwareGamer.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+      - name: Upgrade legacy install and uninstall
+        run: ./scripts/test-installer.ps1
       - name: Package and hash
         run: |
           Copy-Item README.md,docs/GUIA_DO_USUARIO.md,docs/LIMITACOES.md artifacts/portable/
@@ -64,6 +74,8 @@ jobs:
           path: |
             artifacts/tests.txt
             artifacts/screenshots/
+            artifacts/startup/
+            artifacts/installer-test/
           if-no-files-found: warn
           retention-days: 14
       - name: Upload distribution

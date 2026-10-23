@@ -1,4 +1,4 @@
-#define AppVersion "0.1.0"
+#define AppVersion "0.1.1"
 [Setup]
 AppId={{9F654FAB-31C7-4ADB-A595-F0827F7D9D39}
 AppName=Software Gamer
@@ -53,6 +53,11 @@ end;
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
-  if not CheckRecovery(ExpandConstant('{app}\SoftwareGamer.exe')) then
-    Result := 'Resolva a recuperação da versão instalada antes de atualizar.';
+  if FileExists(ExpandConstant('{app}\SoftwareGamer.exe')) then
+  begin
+    { Use the new recovery implementation: 0.1.0 refuses inherited admin tokens. }
+    ExtractTemporaryFile('SoftwareGamer.exe');
+    if not CheckRecovery(ExpandConstant('{tmp}\SoftwareGamer.exe')) then
+      Result := 'Resolva a recuperação da versão instalada antes de atualizar.';
+  end;
 end;

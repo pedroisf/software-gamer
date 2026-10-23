@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         (this.store, this.cleaner, this.smokeOutput) = (store, cleaner, smokeOutput);
         booster = new(store);
+        InitializeUpdates();
         PowerCombo.Items.Add(new PowerScheme("", "Manter plano atual (recomendado)"));
         try { foreach (var scheme in WindowsSystem.PowerSchemes()) PowerCombo.Items.Add(scheme); }
         catch (Exception e) { Status(e.Message); }
@@ -41,7 +42,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             if (smokeOutput is not null) await Smoke();
-            else timer.Start();
+            else { timer.Start(); await StartUpdateChecks(); }
         };
         Closing += OnClosing;
     }
@@ -115,7 +116,7 @@ public partial class MainWindow : Window
             ChangesText.Text = store.Read().Changes.Count(c => c.Pending && c.Kind != "StartupRecovery").ToString();
         }
         catch (Exception e) { Status(e.Message); }
-        finally { ticking = false; }
+        finally { ticking = false; TryShowUpdate(); }
     }
     private void GoCleaner(object sender, RoutedEventArgs e) => Tabs.SelectedIndex = 1;
     private void GoProfiles(object sender, RoutedEventArgs e) => Tabs.SelectedIndex = 2;
@@ -253,7 +254,7 @@ public partial class MainWindow : Window
         await Work(async () =>
         {
             var s = store.Read();
-            var data = new { version = "0.1.0", os = Environment.OSVersion.VersionString, is64Bit = Environment.Is64BitProcess,
+            var data = new { version = AppRelease.Version.ToString(3), os = Environment.OSVersion.VersionString, is64Bit = Environment.Is64BitProcess,
                 pendingChanges = s.Changes.Count(c => c.Pending), conflicts = s.Changes.Count(c => c.Status == "Conflict"),
                 quarantined = s.Quarantine.Count(q => q.Status == "Quarantined"), profileCount = s.Profiles.Count, power = WindowsSystem.PowerSource() };
             await File.WriteAllTextAsync(dialog.FileName, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true })); Status("Diagnóstico salvo no local escolhido. Nenhum dado foi enviado.");
@@ -276,6 +277,7 @@ public partial class MainWindow : Window
             foreach (var i in new[] { 0, 1, 2, 3, 4 })
             {
                 Tabs.SelectedIndex = i; UpdateLayout();
+                if (i == 4) { HelpScroll.ScrollToBottom(); UpdateLayout(); }
                 await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 var bmp = new RenderTargetBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Pbgra32);
                 bmp.Render(this); var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bmp));

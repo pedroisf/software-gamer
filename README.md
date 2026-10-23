@@ -2,7 +2,7 @@
 
 Aplicativo desktop em português para **Windows 11 x64**, com limpeza seletiva e perfis reversíveis por jogo. Funciona localmente, sem conta, telemetria, GPN ou servidores.
 
-**Versão 0.1.0: funcional para validação.** Não representa homologação de produção nem promete aumento de FPS. Veja [limitações](docs/LIMITACOES.md) e [evidências de testes](docs/VALIDACAO.md).
+**Versão 0.1.1: funcional para validação.** Não representa homologação de produção nem promete aumento de FPS. Veja [limitações](docs/LIMITACOES.md) e [evidências de testes](docs/VALIDACAO.md).
 
 ![Dashboard do Software Gamer](docs/screenshots/dashboard.png)
 
@@ -17,7 +17,7 @@ Acesse [Releases](https://github.com/pedroisf/software-gamer/releases) e baixe:
 - `SoftwareGamer-win-x64.zip`: pacote portátil com documentação.
 - `SHA256SUMS.txt`: hashes dos binários da mesma versão.
 
-Abra sem **Executar como administrador**. A distribuição inicial não tem assinatura digital comercial; não desative proteções do Windows para executá-la. O repositório é privado: os downloads exigem acesso à conta autorizada.
+Abra normalmente. O aplicativo não solicita elevação e também aceita permissões administrativas herdadas do Windows. A distribuição inicial não tem assinatura digital comercial; não desative proteções do Windows para executá-la. O repositório e os downloads são públicos, sem necessidade de login.
 
 ## Funcionalidades
 
@@ -30,7 +30,8 @@ Abra sem **Executar como administrador**. A distribuição inicial não tem assi
 | Automação | Detecção de jogos cadastrados enquanto o app está aberto; um perfil ativo por vez |
 | Recuperação | Journal anterior à alteração, processo observador, restauração na saída/crash e no próximo logon para energia |
 | Ferramentas | Atalhos para Armazenamento, Game Mode, Capturas e Energia do Windows |
-| Privacidade | Sem envio de dados; exportação manual de diagnóstico sem caminhos pessoais |
+| Atualizações | Consulta ao abrir e a cada 6 horas; pergunta antes de abrir o download oficial; opção de desativar os avisos |
+| Privacidade | Sem envio de perfis, caminhos ou diagnósticos; consulta de versões ao GitHub, que recebe IP e versão do app |
 
 Caches de jogos e browsers, shaders, Prefetch, pagefile, limpezas de Registro e Standby List não são apagados automaticamente. Configurações padrão podem superar os ajustes opcionais.
 
@@ -63,4 +64,4 @@ O workflow manual [Publish validated release](.github/workflows/release.yml) rec
 
 ## Próximos gates
 
-Homologação em Windows 11 físico e notebooks, acessibilidade/DPI, sessões reais de jogos/anti-cheats e assinatura comercial. Esses itens não são substituídos por uma compilação bem-sucedida. A distribuição inicial usa atualizações manuais pelo GitHub Releases.
+Homologação em Windows 11 físico e notebooks, acessibilidade/DPI, sessões reais de jogos/anti-cheats e assinatura comercial. Esses itens não são substituídos por uma compilação bem-sucedida. O aviso de nova versão é automático e opcional. O download e a instalação continuam sob controle do usuário pelo GitHub Releases.

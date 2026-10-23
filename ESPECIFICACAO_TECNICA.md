@@ -1,6 +1,6 @@
 # Especificação vigente — produto local, sem GPN
 
-Versão 2.0 · 23/10/2026 · Implementação inicial 0.1.0.
+Versão 2.1 · Implementação 0.1.1.
 
 Esta revisão substitui a proposta original por solicitação do usuário. GPN, servidores de tráfego, multipath, custos de infraestrutura de rede e driver de captura foram retirados. A proposta histórica está em `docs/archive/ESPECIFICACAO_ORIGINAL_COM_GPN.md` apenas para rastreabilidade.
 
@@ -10,7 +10,7 @@ Cleaner e Booster funcionam localmente. Limpeza recupera espaço após exclusão
 
 ## 2. Premissas e limites
 
-Windows 11 x64 e volume local NTFS para limpeza. Interface sem elevação, por usuário, sem backend, conta, telemetria ou driver. Somente arquivos `.tmp`/`.temp` do Temp local com mais de 7 dias entram na análise. Limite de 2.000 candidatos/50.000 entradas por análise, profundidade 12, plano válido por 10 minutos. Quarentena limitada a 2 GiB, nunca purgada automaticamente. Não há limpeza de credenciais, sessões, saves, configurações, caches de jogos, Prefetch, pagefile ou Registro.
+Windows 11 x64 e volume local NTFS para limpeza. Interface sem solicitar elevação, por usuário, sem backend, conta, telemetria ou driver. Somente arquivos `.tmp`/`.temp` do Temp local com mais de 7 dias entram na análise. Limite de 2.000 candidatos/50.000 entradas por análise, profundidade 12, plano válido por 10 minutos. Quarentena limitada a 2 GiB, nunca purgada automaticamente. Não há limpeza de credenciais, sessões, saves, configurações, caches de jogos, Prefetch, pagefile ou Registro.
 
 ## 3. Tecnologia
 
@@ -20,7 +20,7 @@ C#/.NET 10, WPF e interop Win32. Processamento de rede/Rust e serviço SYSTEM s�
 
 ```mermaid
 flowchart LR
-  UI[GUI WPF sem elevação] --> Core[Políticas e coordenação C#]
+  UI[GUI WPF asInvoker] --> Core[Políticas e coordenação C#]
   Core --> Cleaner[Análise e operações por handle]
   Core --> Booster[Power APIs e prioridade de processo]
   Core --> State[(Journal local versionado)]
@@ -51,7 +51,7 @@ Encerramento do jogo, saída da GUI e watchdog acionam restauração. Mudança p
 
 ## 6. Dados
 
-`%LOCALAPPDATA%\SoftwareGamer\state.json`: `SchemaVersion`, perfis, alterações, quarentena e contador lógico de purga. Não apagar enquanto houver pendências. Sem TTL destrutivo automático; limpeza do histórico será decisão futura. Nenhum dado é enviado ao GitHub ou à Internet pelo app.
+`%LOCALAPPDATA%\SoftwareGamer\state.json`: `SchemaVersion`, perfis, alterações, quarentena e contador lógico de purga. Não apagar enquanto houver pendências. Sem TTL destrutivo automático; limpeza do histórico será decisão futura. Perfis, caminhos e diagnósticos não são enviados. A consulta opcional de atualizações utiliza a API pública do GitHub, que recebe o IP e a versão do app.
 
 `GameProfile`: ID, nome, caminho, SHA-256, AboveNormal, GUID opcional do plano.
 
@@ -83,9 +83,9 @@ Referências primárias: [arquivos](https://learn.microsoft.com/en-us/windows/wi
 
 ## 9. Segurança, estabilidade e compatibilidade
 
-Não executar elevado. Não existe interface genérica de shell/Registro. Não injetar em jogos, abrir sua memória ou desativar proteções. Perfis identificam executáveis por hash e caminho; atualização do jogo exige recadastro. Administrador ou malware executando como o mesmo usuário não são considerados isolados pelo aplicativo.
+Não solicitar elevação. Aceitar permissões herdadas sem bloquear a abertura e validar SID/sessão antes de acessar processos. Não existe interface genérica de shell/Registro. Não injetar em jogos, abrir sua memória ou desativar proteções. Perfis identificam executáveis por hash e caminho; atualização do jogo exige recadastro. Administrador ou malware executando como o mesmo usuário não são considerados isolados pelo aplicativo.
 
-Binários iniciais não assinados comercialmente. Checksums e distribuição pelo repositório identificam artefatos, mas não substituem Authenticode. Sem updater automático: atualização manual e verificação da release. Desinstalação verifica pendências antes de remover executável e preserva dados locais. Assinatura, testes em Windows 11 físico e homologação anti-cheat permanecem gates de produção.
+Binários iniciais não assinados comercialmente. Checksums e distribuição pelo repositório identificam artefatos, mas não substituem Authenticode. Verificação opcional de versões ao abrir e a cada 6 horas, com confirmação antes de abrir a página oficial. Download e instalação manuais; sem execução automática de artefatos. Desinstalação verifica pendências antes de remover executável e preserva dados locais. Assinatura, testes em Windows 11 físico e homologação anti-cheat permanecem gates de produção.
 
 ## 10. Validação
 

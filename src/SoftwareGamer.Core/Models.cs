@@ -8,6 +8,7 @@ public sealed class AppState
     public List<QuarantineRecord> Quarantine { get; set; } = [];
     public long PurgedBytes { get; set; }
     public bool AutoProfiles { get; set; }
+    public bool CheckForUpdates { get; set; } = true;
 }
 
 public sealed class GameProfile

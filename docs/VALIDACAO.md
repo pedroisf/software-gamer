@@ -1,4 +1,4 @@
-# Validação da versão 0.1.0
+# Validação da versão 0.1.1
 
 ## Verificação automatizada
 
@@ -17,3 +17,11 @@ Na execução [40012505822](https://github.com/pedroisf/software-gamer/actions/r
 O GitHub Actions usa Windows de servidor em seu runner e não comprova funcionamento em todas as builds do Windows 11. Ainda exigem teste físico: troca/restauração de plano OEM real, AC/DC, recuperação após queda de energia/reboot, watchdog sob falhas sistêmicas, instalação/remoção interativas, Narrator/alto contraste/DPI e compatibilidade com jogos e anti-cheats.
 
 Nenhum resultado de FPS, frametime, temperatura ou ganho de desempenho foi medido nesta entrega. A primeira distribuição é uma pré-release para validação, não um produto certificado para uso irrestrito.
+
+## Regressões da versão 0.1.1
+
+A execução real do aplicativo (sem o caminho isolado `--smoke`) precisa abrir a janela com token administrativo herdado do runner. `startup/startup-result.json` registra janela visível, versão e contexto. O workflow falha se essa regressão não for exercitada.
+
+A suíte inclui testes de comparação numérica de versões, canal de pré-release, rascunhos, instaladores ausentes/em envio, URLs fora do repositório, resposta inválida, HTTP sem credenciais, indisponibilidade/rate limit, cancelamento, tamanho de resposta e persistência da preferência. A consulta HTTP usa respostas simuladas; os testes não publicam versões fictícias.
+
+O teste de instalador coloca o executável original 0.1.0 (hash fixado) no destino, instala a versão nova, verifica o hash instalado, abre a janela real e executa a desinstalação. O resultado fica em `installer-test/installer-result.json`. Isso cobre a regressão de upgrade sob token administrativo no runner, sem substituir homologação interativa em PCs físicos.
