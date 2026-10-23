@@ -55,7 +55,8 @@ public sealed class BoosterService(StateStore store)
     public void KeepCurrent(string id) => store.Use(state =>
     {
         var c = state.Changes.Single(x => x.Id == id);
-        if (c.Status != "Conflict" || c.Kind == "StartupRecovery") throw new InvalidOperationException("Somente conflitos de ajustes podem ser encerrados desta forma.");
+        if (c.Status != "Conflict") throw new InvalidOperationException("Somente conflitos podem ser encerrados desta forma.");
+        if (c.Kind == "StartupRecovery" && state.Changes.Any(x => x.Pending && x.Kind == "PowerScheme")) throw new InvalidOperationException("Resolva o plano de energia antes de encerrar o conflito da recuperação.");
         c.Status = "Released"; c.Detail = "Usuário optou por manter o estado atual; restauração encerrada.";
         CleanupRegistration(state); return true;
     });

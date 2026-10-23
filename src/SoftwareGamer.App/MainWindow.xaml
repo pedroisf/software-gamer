@@ -1,4 +1,4 @@
-<Window x:Class="SoftwareGamer.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Software Gamer" Width="1200" Height="850" MinWidth="980" MinHeight="680" WindowStartupLocation="CenterScreen">
+<Window x:Class="SoftwareGamer.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Software Gamer" Width="1200" Height="850" MinWidth="980" MinHeight="680" WindowStartupLocation="CenterScreen" Style="{StaticResource {x:Type Window}}">
   <Grid Margin="30,24">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <Grid Margin="0,0,0,22">

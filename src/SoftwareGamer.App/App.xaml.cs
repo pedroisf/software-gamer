@@ -37,8 +37,9 @@ public partial class App : Application
             {
                 var recoveryStore = new StateStore();
                 new BoosterService(recoveryStore).RestoreAll();
+                if (e.Args.Contains("--uninstall-recover")) new CleanerService(recoveryStore).Reconcile();
                 var state = recoveryStore.Read();
-                var blocked = state.Changes.Any(c => c.Pending) || (e.Args.Contains("--uninstall-recover") && state.Quarantine.Any(q => q.Status is "Prepared" or "Quarantined"));
+                var blocked = state.Changes.Any(c => c.Pending) || (e.Args.Contains("--uninstall-recover") && state.Quarantine.Any(q => q.Status is "Prepared" or "Quarantined" or "RestorePrepared" or "PurgePrepared" or "Conflict"));
                 if (blocked) MessageBox.Show("Existem ajustes pendentes ou arquivos em quarentena. Abra o Software Gamer e revise Recuperação antes de desinstalar.", "Revisão necessária");
                 Shutdown(blocked ? 2 : 0); return;
             }

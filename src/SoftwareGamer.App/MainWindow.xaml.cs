@@ -241,7 +241,11 @@ public partial class MainWindow : Window
         if (uri is "ms-settings:storagesense" or "ms-settings:gaming-gamemode" or "ms-settings:gaming-gamedvr" or "ms-settings:powersleep")
             try { Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true }); } catch (Exception ex) { Status(ex.Message); }
     }
-    private void OpenRepositoryClick(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://github.com/pedroisf/software-gamer/releases") { UseShellExecute = true });
+    private void OpenRepositoryClick(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://github.com/pedroisf/software-gamer/releases") { UseShellExecute = true }); }
+        catch (Exception ex) { Status(ex.Message); }
+    }
     private async void ExportClick(object sender, RoutedEventArgs e)
     {
         var dialog = new SaveFileDialog { Filter = "Diagnóstico JSON|*.json", FileName = "SoftwareGamer-diagnostico.json" };
