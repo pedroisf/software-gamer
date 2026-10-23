@@ -50,6 +50,8 @@ dotnet run --project src/SoftwareGamer.App
 
 Publicação self-contained em `artifacts/portable`. O instalador usa Inno Setup 6; o workflow [Windows build and validation](.github/workflows/windows.yml) executa testes, publica, renderiza a interface, compila o instalador e gera hashes.
 
+O workflow manual [Publish validated release](.github/workflows/release.yml) recebe o ID de uma compilação aprovada, seu commit exato e a tag. Ele confere hashes e resultados antes de publicar os mesmos binários em uma pré-release; as notas ficam em `docs/releases`.
+
 ## Organização
 
 - `src/SoftwareGamer.Core`: políticas, persistência, integração Win32, Cleaner e Booster.

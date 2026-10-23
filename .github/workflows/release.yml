@@ -1,0 +1,73 @@
+name: Publish validated release
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Windows build run ID
+        required: true
+        type: string
+      target_sha:
+        description: Exact commit validated by that run
+        required: true
+        type: string
+      tag:
+        description: Release tag (must have docs/releases/TAG.md)
+        required: true
+        default: v0.1.0
+        type: string
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_RUN: ${{ inputs.run_id }}
+      TARGET_SHA: ${{ inputs.target_sha }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source build
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test -f "docs/releases/$RELEASE_TAG.md"
+          gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > /tmp/source-run.json
+          jq -e --arg sha "$TARGET_SHA" --arg repo "$GH_REPO" '.conclusion == "success" and .head_sha == $sha and .head_repository.full_name == $repo and .event == "push" and .path == ".github/workflows/windows.yml"' /tmp/source-run.json
+      - name: Download validated distribution and evidence
+        run: |
+          gh run download "$BUILD_RUN" --name software-gamer-win-x64 --dir distribution
+          gh run download "$BUILD_RUN" --name validation-windows --dir validation
+      - name: Verify binary hashes and test results
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp distribution/portable/SoftwareGamer.exe distribution/SoftwareGamer.exe
+          cd distribution
+          sed 's/\r$//' SHA256SUMS.txt | sha256sum --check
+          cd ..
+          grep -Eq 'RESULT passed=[1-9][0-9]* failed=0 skipped=0' validation/tests.txt
+          jq -e '.rendered == 5 and .candidates == 1' validation/screenshots/smoke-result.json
+          printf 'commit=%s\nworkflow=https://github.com/%s/actions/runs/%s\n' "$TARGET_SHA" "$GH_REPO" "$BUILD_RUN" > validation/BUILD.txt
+          (cd validation && zip -qr ../SoftwareGamer-validacao-windows.zip .)
+      - name: Upload complete prerelease
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --json isDraft > /tmp/release.json 2>/dev/null; then
+            jq -e '.isDraft == true' /tmp/release.json
+          else
+            gh release create "$RELEASE_TAG" --target "$TARGET_SHA" --title "Software Gamer ${RELEASE_TAG#v} — Cleaner e Booster locais" --draft --prerelease --notes-file "docs/releases/$RELEASE_TAG.md"
+          fi
+          gh release upload "$RELEASE_TAG" distribution/SoftwareGamer.exe distribution/SoftwareGamer-Setup-x64.exe distribution/SoftwareGamer-win-x64.zip distribution/SHA256SUMS.txt SoftwareGamer-validacao-windows.zip --clobber
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets | length == 5' | grep -qx true
+          gh release edit "$RELEASE_TAG" --target "$TARGET_SHA" --notes-file "docs/releases/$RELEASE_TAG.md" --draft=false --prerelease
