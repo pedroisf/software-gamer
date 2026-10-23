@@ -11,4 +11,5 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../SoftwareGamer.Core/SoftwareGamer.Core.csproj" /></ItemGroup>
+  <ItemGroup><EmbeddedResource Include="../../licenses/*.txt" Link="Licenses/%(Filename)%(Extension)" /></ItemGroup>
 </Project>

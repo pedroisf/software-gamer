@@ -4,6 +4,10 @@ Aplicativo desktop em português para **Windows 11 x64**, com limpeza seletiva e
 
 **Versão 0.1.0: funcional para validação.** Não representa homologação de produção nem promete aumento de FPS. Veja [limitações](docs/LIMITACOES.md) e [evidências de testes](docs/VALIDACAO.md).
 
+![Dashboard do Software Gamer](docs/screenshots/dashboard.png)
+
+Interface renderizada no runner Windows de testes; os valores exibidos pertencem a esse ambiente.
+
 ## Baixar e executar
 
 Acesse [Releases](https://github.com/pedroisf/software-gamer/releases) e baixe:

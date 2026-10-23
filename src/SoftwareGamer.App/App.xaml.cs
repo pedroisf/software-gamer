@@ -11,6 +11,7 @@ public partial class App : Application
 {
     private Mutex? instance;
     private static Process? watchdog;
+    private static bool watchdogConfirmed;
     internal static string ExecutablePath => Environment.ProcessPath ?? throw new IOException("Executável indisponível.");
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -72,13 +73,19 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e) { instance?.Dispose(); base.OnExit(e); }
     internal static void EnsureWatchdog()
     {
-        if (watchdog is not null && !watchdog.HasExited) return;
+        if (watchdogConfirmed && watchdog is not null && !watchdog.HasExited) return;
+        watchdogConfirmed = false;
         var eventName = @"Local\SoftwareGamer.Ready." + Guid.NewGuid().ToString("N");
         using var ready = new EventWaitHandle(false, EventResetMode.ManualReset, eventName);
         var start = new ProcessStartInfo(ExecutablePath) { UseShellExecute = false, CreateNoWindow = true };
         start.ArgumentList.Add("--watchdog"); start.ArgumentList.Add(WindowsSystem.CurrentOwner); start.ArgumentList.Add(eventName);
         watchdog?.Dispose();
         watchdog = Process.Start(start) ?? throw new IOException("Não foi possível iniciar a recuperação.");
-        if (!ready.WaitOne(TimeSpan.FromSeconds(10))) throw new IOException("A recuperação não confirmou disponibilidade. Nenhum perfil foi aplicado.");
+        if (!ready.WaitOne(TimeSpan.FromSeconds(10)))
+        {
+            if (!watchdog.HasExited) watchdog.Kill();
+            throw new IOException("A recuperação não confirmou disponibilidade. Nenhum perfil foi aplicado.");
+        }
+        watchdogConfirmed = true;
     }
 }

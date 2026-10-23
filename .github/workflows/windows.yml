@@ -50,6 +50,7 @@ jobs:
       - name: Package and hash
         run: |
           Copy-Item README.md,docs/GUIA_DO_USUARIO.md,docs/LIMITACOES.md artifacts/portable/
+          Copy-Item licenses artifacts/portable/licenses -Recurse
           Compress-Archive artifacts/portable/* artifacts/SoftwareGamer-win-x64.zip
           Get-ChildItem artifacts/portable/SoftwareGamer.exe,artifacts/SoftwareGamer-win-x64.zip,artifacts/SoftwareGamer-Setup-x64.exe | ForEach-Object {
             $h = Get-FileHash $_.FullName -Algorithm SHA256

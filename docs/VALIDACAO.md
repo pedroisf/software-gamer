@@ -10,6 +10,8 @@
 
 Resultados e screenshots são anexados pelo workflow `Windows build and validation` como artefatos. A release identifica o commit correspondente. Consulte a execução vinculada à release para contagens finais.
 
+Na execução [40012505822](https://github.com/pedroisf/software-gamer/actions/runs/40012505822), os **35 testes passaram, sem falhas e sem testes ignorados**. Cinco telas foram renderizadas e o instalador compilou. A revisão visual identificou contraste insuficiente e gerou uma correção posterior; a release usa uma execução mais recente, também vinculada na sua descrição.
+
 ## Pendências de homologação
 
 O GitHub Actions usa Windows de servidor em seu runner e não comprova funcionamento em todas as builds do Windows 11. Ainda exigem teste físico: troca/restauração de plano OEM real, AC/DC, recuperação após queda de energia/reboot, watchdog sob falhas sistêmicas, instalação/remoção interativas, Narrator/alto contraste/DPI e compatibilidade com jogos e anti-cheats.

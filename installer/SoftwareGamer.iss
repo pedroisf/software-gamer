@@ -25,6 +25,7 @@ Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortugue
 Source: "..\artifacts\portable\SoftwareGamer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\GUIA_DO_USUARIO.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\LIMITACOES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\licenses\*"; DestDir: "{app}\licenses"; Flags: ignoreversion
 [Icons]
 Name: "{group}\Software Gamer"; Filename: "{app}\SoftwareGamer.exe"
 Name: "{group}\Desinstalar Software Gamer"; Filename: "{uninstallexe}"
